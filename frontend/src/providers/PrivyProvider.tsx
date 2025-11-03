@@ -1,35 +1,35 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider } from "@privy-io/wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { http } from "viem";
-import { mainnet, sepolia } from "viem/chains";
-import { createConfig } from "@privy-io/wagmi";
-import { privyConfig } from "@/config/privy";
-
-// Create wagmi config
-const wagmiConfig = createConfig({
-  chains: [mainnet, sepolia],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-  },
-});
-
-// Create query client
-const queryClient = new QueryClient();
 
 interface PrivyWalletProviderProps {
   children: React.ReactNode;
 }
 
 export function PrivyWalletProvider({ children }: PrivyWalletProviderProps) {
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "your-privy-app-id";
+
   return (
-    <PrivyProvider appId={privyConfig.appId} config={privyConfig}>
-      <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
-      </QueryClientProvider>
+    <PrivyProvider
+      appId={appId}
+      config={{
+        // Customize the login experience
+        loginMethods: ["email", "wallet", "google", "twitter"],
+
+        // Appearance customization
+        appearance: {
+          theme: "light",
+          accentColor: "#676FFF",
+        },
+
+        // Wallet configuration
+        embeddedWallets: {
+          createOnLogin: "users-without-wallets",
+          requireUserPasswordOnCreate: false,
+        },
+      }}
+    >
+      {children}
     </PrivyProvider>
   );
 }

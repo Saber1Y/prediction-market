@@ -12,7 +12,6 @@ export function WalletConnect() {
     hasWallet,
     isEmbeddedWallet,
     connectExternalWallet,
-    createEmbeddedWallet,
     disconnectWallet,
   } = useWalletConnection();
 
@@ -61,21 +60,6 @@ export function WalletConnect() {
         className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors"
       >
         {isConnecting ? "Connecting..." : "Connect Wallet"}
-      </button>
-
-      <button
-        onClick={async () => {
-          setIsConnecting(true);
-          try {
-            await createEmbeddedWallet();
-          } finally {
-            setIsConnecting(false);
-          }
-        }}
-        disabled={isConnecting}
-        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 transition-colors"
-      >
-        {isConnecting ? "Creating..." : "Create Wallet"}
       </button>
     </div>
   );

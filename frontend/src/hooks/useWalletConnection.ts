@@ -1,7 +1,6 @@
 "use client";
 
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useWalletClient } from "@privy-io/wagmi";
 import { useCallback } from "react";
 
 export function useWalletConnection() {
@@ -16,7 +15,6 @@ export function useWalletConnection() {
   } = usePrivy();
 
   const { wallets } = useWallets();
-  const { data: walletClient } = useWalletClient();
 
   const connectExternalWallet = useCallback(async () => {
     if (!authenticated) {
@@ -50,7 +48,6 @@ export function useWalletConnection() {
     wallets,
     primaryWallet,
     walletAddress,
-    walletClient,
 
     // Actions
     login,
