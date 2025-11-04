@@ -16,7 +16,7 @@ function StatAnimated({ value, label }: { value: string; label: string }) {
 
   return (
     <div className="text-center">
-      <animated.div className="text-3xl font-bold text-yellow-400">
+      <animated.div className="text-3xl font-bold text-[#adf6b1]">
         {spring.val.to((val) =>
           value.includes("k") || value.includes("m")
             ? `${val.toFixed(1)}${value.replace(/[0-9.]/g, "")}`
@@ -59,31 +59,28 @@ export function HeroSection() {
   // })}
 
   return (
-    <div className="bg-linear-to-r from-blue-600 to-purple-700 text-white">
+    <div className=" text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
             Predict the Future,
-            <span className="block text-transparent bg-clip-text bg-linear-to-r from-yellow-400 to-pink-400">
+            <span className="block text-[#adf6b1] bg-clip-text ">
               Earn Rewards
             </span>
           </h1>
-          
           <p className="text-xl sm:text-2xl mb-8 max-w-3xl mx-auto text-blue-100">
-            Join the world&apos;s most advanced decentralized prediction market. 
+            Join the world&apos;s most advanced decentralized prediction market.
             Trade on real-world outcomes with LMSR-powered pricing.
           </p>
-          
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 shadow-lg">
+            <button className="bg-white text-[#adf6b1] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 shadow-lg">
               Start Trading
             </button>
-            
-            <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors duration-200">
+
+            <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#adf6b1] transition-colors duration-200">
               Learn More
             </button>
           </div>
-          
           {/* Animated Stats */}
           <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {stats.map((stat, index) => (
