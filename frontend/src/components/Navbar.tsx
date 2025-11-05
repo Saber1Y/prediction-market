@@ -8,7 +8,8 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: "/", label: "Markets" },
+    { href: "/", label: "Home" },
+    { href: "/markets", label: "Markets" },
     { href: "/dashboard", label: "Dashboard" },
     { href: "/create", label: "Create Market" },
     { href: "/leaderboard", label: "Leaderboard" },
