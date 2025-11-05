@@ -9,8 +9,8 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Markets" },
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/create", label: "Create Market" },
-    { href: "/portfolio", label: "Portfolio" },
     { href: "/leaderboard", label: "Leaderboard" },
   ];
 
