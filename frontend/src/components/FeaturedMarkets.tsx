@@ -197,13 +197,13 @@ function FeaturedMarketCard({ market, index }: FeaturedMarketCardProps) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-gray-300 font-medium">YES</span>
+                <span className="text-white font-medium">YES</span>
               </div>
               <div className="text-right">
                 <div className="font-bold text-green-400">
                   ${market.yesPrice.toFixed(2)}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-white">
                   {(market.yesPrice * 100).toFixed(0)}%
                 </div>
               </div>
@@ -212,13 +212,13 @@ function FeaturedMarketCard({ market, index }: FeaturedMarketCardProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-gray-300 font-medium">NO</span>
+                <span className="text-white font-medium">NO</span>
               </div>
               <div className="text-right">
                 <div className="font-bold text-red-400">
                   ${market.noPrice.toFixed(2)}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-white">
                   {(market.noPrice * 100).toFixed(0)}%
                 </div>
               </div>

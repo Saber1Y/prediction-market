@@ -12,7 +12,6 @@ export function Navbar() {
     { href: "/markets", label: "Markets" },
     { href: "/dashboard", label: "Dashboard" },
     { href: "/create", label: "Create Market" },
-    { href: "/leaderboard", label: "Leaderboard" },
   ];
 
   return (
@@ -22,9 +21,6 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-linear-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">L</span>
-              </div>
               <span className="text-xl font-bold text-gray-900">
                 Log Protocol
               </span>

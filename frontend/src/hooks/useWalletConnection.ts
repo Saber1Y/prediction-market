@@ -49,14 +49,12 @@ export function useWalletConnection() {
     primaryWallet,
     walletAddress,
 
-    // Actions
     login,
     logout,
     connectExternalWallet,
     createEmbeddedWallet,
     disconnectWallet,
 
-    // Wallet info
     hasWallet: wallets.length > 0,
     isEmbeddedWallet: primaryWallet?.walletClientType === "privy",
   };
