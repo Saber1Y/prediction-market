@@ -176,10 +176,10 @@ export function MarketsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-white mb-2">
           Prediction Markets
         </h1>
-        <p className="text-gray-600">
+        <p className="text-white">
           Discover and trade on the most popular prediction markets with
           real-time pricing.
         </p>
@@ -191,8 +191,8 @@ export function MarketsPage() {
         {trendingMarkets.length > 0 && (
           <div>
             <div className="flex items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                🔥 Trending Markets
+              <h2 className="text-xl font-semibold text-white">
+                Trending Markets
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -208,7 +208,7 @@ export function MarketsPage() {
           <div>
             <div className="flex items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-900">
-                ⏰ Ending Soon
+                Ending Soon
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -283,9 +283,7 @@ export function MarketsPage() {
 
       {/* Results */}
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-gray-600">
-          Showing {filteredMarkets.length} markets
-        </p>
+        <p className="text-white">Showing {filteredMarkets.length} markets</p>
       </div>
 
       {/* Markets Grid */}
@@ -330,7 +328,7 @@ function MarketCard({ market, showTrending, showCountdown }: MarketCardProps) {
               </span>
               {showTrending && market.trending && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  🔥 Trending
+                  Trending
                 </span>
               )}
               {showCountdown && daysRemaining <= 7 && (

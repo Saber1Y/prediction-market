@@ -11,7 +11,6 @@ export function Navbar() {
     { href: "/", label: "Home" },
     { href: "/markets", label: "Markets" },
     { href: "/dashboard", label: "Dashboard" },
-    { href: "/create", label: "Create Market" },
   ];
 
   return (

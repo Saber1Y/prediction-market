@@ -13,6 +13,20 @@ export function AdminDashboard() {
   );
 }
 
+interface Market {
+  id: string;
+  question: string;
+  category: string;
+  description: string;
+  endDate: Date;
+  initialLiquidity: number;
+  status: "draft" | "active" | "ended" | "resolved";
+  createdAt: Date;
+  volume: number;
+  yesPrice: number;
+  noPrice: number;
+}
+
 function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState<"overview" | "create" | "manage">(
     "overview"
@@ -140,7 +154,9 @@ function AdminDashboardContent() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as "overview" | "create" | "manage")}
+                onClick={() =>
+                  setActiveTab(tab.id as "overview" | "create" | "manage")
+                }
                 className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                   activeTab === tab.id
                     ? "border-blue-500 text-blue-600"
