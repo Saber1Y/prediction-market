@@ -163,6 +163,7 @@ export function MarketsPage() {
   const trendingMarkets = mockMarkets
     .filter((market) => market.trending)
     .slice(0, 3);
+
   const endingSoonMarkets = mockMarkets
     .filter((market) => {
       const now = new Date();
@@ -404,7 +405,7 @@ function MarketCard({ market, showTrending, showCountdown }: MarketCardProps) {
         {/* Action Buttons */}
         <div className="mt-4 flex gap-2">
           <button
-            className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+            className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium cursor-pointer"
             onClick={(e) => {
               e.preventDefault(); /* Handle YES buy */
             }}
@@ -412,7 +413,7 @@ function MarketCard({ market, showTrending, showCountdown }: MarketCardProps) {
             Buy YES
           </button>
           <button
-            className="flex-1 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+            className="flex-1 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors text-sm font-medium cursor-pointer"
             onClick={(e) => {
               e.preventDefault(); /* Handle NO buy */
             }}
