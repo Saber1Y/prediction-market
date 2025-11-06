@@ -30,7 +30,7 @@ interface Transaction {
 }
 
 export function UserDashboard() {
-  const { walletAddress, isAuthenticated } = useWalletConnection();
+  const { isAuthenticated } = useWalletConnection();
   const [activeTab, setActiveTab] = useState<
     "overview" | "positions" | "history"
   >("overview");
@@ -102,7 +102,7 @@ export function UserDashboard() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Connect Your Wallet
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-white mb-6">
             Please connect your wallet to view your dashboard
           </p>
         </div>
@@ -115,8 +115,8 @@ export function UserDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">
-          Welcome back! Here's your trading overview.
+        <p className="text-white">
+          Welcome back! Here&apos;s your trading overview.
         </p>
       </div>
 
@@ -178,11 +178,13 @@ export function UserDashboard() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() =>
+                setActiveTab(tab.id as "overview" | "positions" | "history")
+              }
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-white hover:text-gray-700 hover:border-gray-300"
               }`}
             >
               {tab.label}
