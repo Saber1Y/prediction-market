@@ -2,7 +2,10 @@
 pragma solidity ^0.8.30;
 
 error AmountMustBeGreaterThan0();
-error  IncorrectPaymentAmount();
+error IncorrectPaymentAmount();
+error MarketAlreadyResolved();
+error MarketHasNotEndedYet();
+
 
 contract PredictionMarket {
     
@@ -37,7 +40,7 @@ contract PredictionMarket {
     // User position tracking
     mapping(address => uint256) public userYesShares;
     mapping(address => uint256) public userNoShares;
-    mapping(address => bool) public hasPosition;
+    mapping(address => bool) public hasPosition; // check users who are trading in the market
     address[] public traders; 
     
     // Events
@@ -76,7 +79,7 @@ contract PredictionMarket {
     // Trading Functions
     function buyYesShares(uint256 amount) external payable onlyActive {
 
-        if (amount < 0) {
+        if (amount == 0) {
             revert AmountMustBeGreaterThan0();
         }
         // require(amount > 0, "Amount must be greater than 0");
@@ -104,7 +107,7 @@ contract PredictionMarket {
 
     
     function buyNoShares(uint256 amount) external payable onlyActive {
-        if (amount < 0) {
+        if (amount == 0) {
             revert AmountMustBeGreaterThan0();
         }
         
@@ -133,8 +136,16 @@ contract PredictionMarket {
     
     // Market Management Functions
     function resolveMarket(bool _outcome) external onlyAdmin {
-        require(currentStatus == Status.ACTIVE, "Market already resolved");
-        require(block.timestamp >= endTime, "Market hasn't ended yet");
+
+        if (currentStatus == Status.RESOLVED) {
+            revert MarketAlreadyResolved();
+        }
+
+        if (block.timestamp < endTime) {
+            revert MarketHasNotEndedYet();
+        }
+
+        // require(block.timestamp >= endTime, "Market hasn't ended yet");
         
         outcome = _outcome;
         currentStatus = Status.RESOLVED;
