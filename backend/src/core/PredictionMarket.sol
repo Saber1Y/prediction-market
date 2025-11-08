@@ -9,6 +9,7 @@ error MarketNotActive();
 error MarketNotPaused();
 error MarketNotResolved();
 error NoWinningShares();
+error InsufficientContractBalance();
 
 
 contract PredictionMarket {
@@ -181,14 +182,12 @@ contract PredictionMarket {
         uint256 winningShares;
 
         if (outcome) {
-            // YES won
             winningShares = userYesShares[msg.sender];
             if (winningShares == 0) {
                 revert NoWinningShares(); 
             }
             userYesShares[msg.sender] = 0; // Prevent double claiming
         } else {
-            // NO won
             winningShares = userNoShares[msg.sender];
             if (winningShares == 0) {
                 revert NoWinningShares(); 
@@ -200,8 +199,10 @@ contract PredictionMarket {
         // (This assumes each share costs 0.01 ETH, winners get 1 ETH per winning share)
         uint256 payout = winningShares * 1 ether;
         
-        // Make sure contract has enough balance
-        require(address(this).balance >= payout, "Insufficient contract balance");
+
+        if (address(this).balance < payout) {
+            revert InsufficientContractBalance();
+        }
         
         // Transfer payout
         payable(msg.sender).transfer(payout);
