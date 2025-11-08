@@ -5,6 +5,8 @@ error AmountMustBeGreaterThan0();
 error IncorrectPaymentAmount();
 error MarketAlreadyResolved();
 error MarketHasNotEndedYet();
+error MarketNotActive();
+error MarketNotPaused();
 
 
 contract PredictionMarket {
@@ -154,12 +156,16 @@ contract PredictionMarket {
     }
     
     function pauseMarket() external onlyAdmin {
-        require(currentStatus == Status.ACTIVE, "Market not active");
+        if (currentStatus != Status.ACTIVE) {
+            revert MarketNotActive();
+        }
         currentStatus = Status.PAUSED;
     }
     
     function resumeMarket() external onlyAdmin {
-        require(currentStatus == Status.PAUSED, "Market not paused");
+        if (currentStatus != Status.PAUSED) {
+            revert MarketNotPaused();
+        }
         currentStatus = Status.ACTIVE;
     }
     
