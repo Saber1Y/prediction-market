@@ -7,7 +7,7 @@ error MarketAlreadyResolved();
 error MarketHasNotEndedYet();
 error MarketNotActive();
 error MarketNotPaused();
-error MarketNotResolved();
+error MarketNotReslved();
 error NoWinningShares();
 error InsufficientContractBalance();
 
