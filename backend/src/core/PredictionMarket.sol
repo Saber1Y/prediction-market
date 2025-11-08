@@ -7,6 +7,8 @@ error MarketAlreadyResolved();
 error MarketHasNotEndedYet();
 error MarketNotActive();
 error MarketNotPaused();
+error MarketNotResolved();
+error NoWinningShares();
 
 
 contract PredictionMarket {
@@ -171,19 +173,26 @@ contract PredictionMarket {
     
     // Payout Functions
     function claimWinnings() external {
-        require(currentStatus == Status.RESOLVED, "Market not resolved");
+        // require(currentStatus == Status.RESOLVED, "Market not resolved");
+        if (currentStatus != Status.RESOLVED) {
+            revert MarketNotReslved();
+        }
         
         uint256 winningShares;
 
         if (outcome) {
             // YES won
             winningShares = userYesShares[msg.sender];
-            require(winningShares > 0, "No winning shares");
+            if (winningShares == 0) {
+                revert NoWinningShares(); 
+            }
             userYesShares[msg.sender] = 0; // Prevent double claiming
         } else {
             // NO won
             winningShares = userNoShares[msg.sender];
-            require(winningShares > 0, "No winning shares");
+            if (winningShares == 0) {
+                revert NoWinningShares(); 
+            }
             userNoShares[msg.sender] = 0; // Prevent double claiming
         }
         
