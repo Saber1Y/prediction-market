@@ -1,41 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
+import {PredictionMarket} from "./PredictionMarket.sol";
 
+error NotAdmin();
+error MarketNotFound();
+error OnlyOwnerCanPerformThisAction();
 
+contract PredictionMarketFactory {
+    address[] public markets;
+    uint256 public marketCount;
+    
+    event MarketCreated(uint256 indexed marketId, address indexed marketAddress);
 
-// pragma solidity ^0.8.20;
-
-// contract PredictionMarketFactory {
-//     struct Market {
-//         uint256 id;
-//         string question;
-//         string category;
-//         bool outcome;
-//         string imageUrl;
-//         address creator;
-//         address liquidity;
-//         status activeStatus;
-//         uint256 totalShares;
-//         uint256 yeshare;
-//         uint256 noShare
-//     }
-
-//     mapping(address => bool) public admins;
-//     address[] public markets;
-
-//     mapping(uint256 => address) public marketById;
-//     uint256 public marketCount;
-
-//     modifier onlyAdmin() {
-//         require(admins[msg.sender], "Only admin can perform this action");
-//         _;
-//     }
-
-//     function createMarket(uint256 id, string memory question, string memory imageUrl) public payable onlyAdmin {
-//         PredictionMarket newMarket = new PredictionMarket(id, question, imageUrl, msg.sender);
-//         markets.push(address(newMarket));
-//         marketById[id] = address(newMarket);
-//         marketCount++;
-//         emit MarketCreated(id, address(newMarket), question, msg.sender);
-//     }
-// }
+    function createMarket(string memory question, string memory imageUrl) external {
+        PredictionMarket newMarket = new PredictionMarket(
+            marketCount,
+            question, 
+            imageUrl,
+            msg.sender
+        );
+        
+        markets.push(address(newMarket));
+        emit MarketCreated(marketCount, address(newMarket));
+        marketCount++;
+    }
+    
+    function getAllMarkets() external view returns (address[] memory) {
+        return markets;
+    }
+}

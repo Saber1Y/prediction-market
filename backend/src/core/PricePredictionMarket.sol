@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
 error AmountMustBeGreaterThan0();
 error IncorrectPaymentAmount();
 error MarketAlreadyResolved();
-error MarketHasNotEndedYet();
+error ResolutionTimeNotReached();
 error MarketNotActive();
 error MarketNotPaused();
 error MarketNotResolved();
 error NoWinningShares();
 error InsufficientContractBalance();
+error PriceDataTooOld();
+error InvalidPriceData();
 
-
-contract PredictionMarket {
+contract PricePredictionMarket {
     
     enum Status {
         ACTIVE,
@@ -20,15 +23,20 @@ contract PredictionMarket {
         RESOLVED
     }
 
-    // Individual variables - this contract IS a market
+    // Market identity
     uint256 public marketId;
     string public question;
-    string public category;
     string public imageUrl;
     address public creator;
     address public factory;
     Status public currentStatus;
     bool public outcome;
+    
+    // Price oracle data
+    AggregatorV3Interface internal priceFeed;
+    uint256 public targetPrice;      // Target price (scaled to feed decimals)
+    uint256 public resolutionTime;   // When market can be resolved
+    string public priceSymbol;       // e.g., "BTC/USD"
     
     // Trading data
     uint256 public totalShares;
@@ -37,33 +45,48 @@ contract PredictionMarket {
     
     // Timing
     uint256 public createdAt;
-    uint256 public endTime;
 
     // Trading constants
-    uint256 public constant SHARE_PRICE = 0.01 ether; // Fixed price: 0.01 ETH per share
+    uint256 public constant SHARE_PRICE = 0.01 ether;
+    uint256 public constant MAX_PRICE_AGE = 3600; // 1 hour in seconds
     
     // User position tracking
     mapping(address => uint256) public userYesShares;
     mapping(address => uint256) public userNoShares;
-    mapping(address => bool) public hasPosition; // check users who are trading in the market
-    address[] public traders; 
+    mapping(address => bool) public hasPosition;
+    address[] public traders;
     
     // Events
     event SharesPurchased(address indexed buyer, bool isYes, uint256 amount, uint256 cost);
-    event MarketResolved(uint256 indexed marketId, bool outcome);
+    event MarketResolved(uint256 indexed marketId, bool outcome, int256 finalPrice);
     event WinningsClaimed(address indexed winner, uint256 amount);
+    event AutoResolutionAttempted(uint256 indexed marketId, int256 price, uint256 timestamp);
 
-    constructor(uint256 _id, string memory _question, string memory _imageUrl, address _creator) {
+    constructor(
+        uint256 _id,
+        string memory _question,
+        string memory _imageUrl,
+        address _creator,
+        address _priceFeed,
+        uint256 _targetPrice,
+        uint256 _resolutionTime,
+        string memory _priceSymbol
+    ) {
         marketId = _id;
         question = _question;
         imageUrl = _imageUrl;
         creator = _creator;
-        factory = msg.sender; 
+        factory = msg.sender;
         currentStatus = Status.ACTIVE;
         createdAt = block.timestamp;
-        endTime = block.timestamp + 30 days; 
+        
+        // Oracle setup
+        priceFeed = AggregatorV3Interface(_priceFeed);
+        targetPrice = _targetPrice;
+        resolutionTime = _resolutionTime;
+        priceSymbol = _priceSymbol;
 
-        //tradaing shares
+        // Trading shares
         totalShares = 0;
         yesShares = 0;
         noShares = 0;
@@ -72,7 +95,7 @@ contract PredictionMarket {
     // Modifiers
     modifier onlyActive() {
         require(currentStatus == Status.ACTIVE, "Market not active");
-        require(block.timestamp < endTime, "Market has ended");
+        require(block.timestamp < resolutionTime, "Market resolution time reached");
         _;
     }
     
@@ -81,83 +104,108 @@ contract PredictionMarket {
         _;
     }
 
-    // Trading Functions
+    // Trading Functions (same as before)
     function buyYesShares(uint256 amount) external payable onlyActive {
-
         if (amount == 0) {
             revert AmountMustBeGreaterThan0();
         }
-        // require(amount > 0, "Amount must be greater than 0");
         
-        uint256 cost = amount * SHARE_PRICE; //cost of entering yes or no shares in the market
-        // require(msg.value == cost, "Incorrect payment amount");
+        uint256 cost = amount * SHARE_PRICE;
         if (msg.value != cost) {
             revert IncorrectPaymentAmount();
         }
         
-        // Update user position in mapping storage
-        userYesShares[msg.sender] += amount; 
+        userYesShares[msg.sender] += amount;
         
-        // Add to traders list if first time
         if (!hasPosition[msg.sender]) {
             hasPosition[msg.sender] = true;
             traders.push(msg.sender);
         }
         
-        // Update market totals
         yesShares += amount;
         totalShares += amount;
         emit SharesPurchased(msg.sender, true, amount, cost);
     }
 
-    
     function buyNoShares(uint256 amount) external payable onlyActive {
         if (amount == 0) {
             revert AmountMustBeGreaterThan0();
         }
         
         uint256 cost = amount * SHARE_PRICE;
-          if (msg.value != cost) {
+        if (msg.value != cost) {
             revert IncorrectPaymentAmount();
         }
         
-        // Update user position
         userNoShares[msg.sender] += amount;
         
-        // Add to traders list if first time
         if (!hasPosition[msg.sender]) {
             hasPosition[msg.sender] = true;
             traders.push(msg.sender);
         }
         
-        // Update market totals
         noShares += amount;
         totalShares += amount;
         
         emit SharesPurchased(msg.sender, false, amount, cost);
     }
 
-
-    
-    // Market Management Functions
-    function resolveMarket(bool _outcome) external onlyAdmin {
-
+    // ORACLE RESOLUTION FUNCTIONS - The new stuff!
+    function autoResolveMarket() external {
         if (currentStatus == Status.RESOLVED) {
             revert MarketAlreadyResolved();
         }
-
-        if (block.timestamp < endTime) {
-            revert MarketHasNotEndedYet();
+        
+        if (block.timestamp < resolutionTime) {
+            revert ResolutionTimeNotReached();
         }
 
-        // require(block.timestamp >= endTime, "Market hasn't ended yet");
+        // Get latest price data from Chainlink
+        (
+            uint80 roundId,
+            int256 price,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+
+        // Validate price data
+        if (price <= 0) {
+            revert InvalidPriceData();
+        }
+        
+        if (block.timestamp - updatedAt > MAX_PRICE_AGE) {
+            revert PriceDataTooOld();
+        }
+
+        // Determine outcome: Is current price >= target price?
+        bool marketOutcome = uint256(price) >= targetPrice;
+        
+        // Resolve the market
+        outcome = marketOutcome;
+        currentStatus = Status.RESOLVED;
+        
+        emit MarketResolved(marketId, marketOutcome, price);
+        emit AutoResolutionAttempted(marketId, price, updatedAt);
+    }
+
+    // Manual resolution fallback (if oracle fails)
+    function manualResolveMarket(bool _outcome) external onlyAdmin {
+        if (currentStatus == Status.RESOLVED) {
+            revert MarketAlreadyResolved();
+        }
+        
+        if (block.timestamp < resolutionTime) {
+            revert ResolutionTimeNotReached();
+        }
         
         outcome = _outcome;
         currentStatus = Status.RESOLVED;
         
-        emit MarketResolved(marketId, _outcome);
+        emit MarketResolved(marketId, _outcome, 0); // 0 indicates manual resolution
     }
-    
+
+    // Market Management Functions
     function pauseMarket() external onlyAdmin {
         if (currentStatus != Status.ACTIVE) {
             revert MarketNotActive();
@@ -172,9 +220,8 @@ contract PredictionMarket {
         currentStatus = Status.ACTIVE;
     }
     
-    // Payout Functions
+    // Payout Functions (same as before)
     function claimWinnings() external {
-        // require(currentStatus == Status.RESOLVED, "Market not resolved");
         if (currentStatus != Status.RESOLVED) {
             revert MarketNotResolved();
         }
@@ -186,33 +233,48 @@ contract PredictionMarket {
             if (winningShares == 0) {
                 revert NoWinningShares(); 
             }
-            userYesShares[msg.sender] = 0; // Prevent double claiming
+            userYesShares[msg.sender] = 0;
         } else {
             winningShares = userNoShares[msg.sender];
             if (winningShares == 0) {
                 revert NoWinningShares(); 
             }
-            userNoShares[msg.sender] = 0; // Prevent double claiming
+            userNoShares[msg.sender] = 0;
         }
         
-        // Simple payout: winning shares get 1 ETH per share
-        // (This assumes each share costs 0.01 ETH, winners get 1 ETH per winning share)
         uint256 payout = winningShares * 1 ether;
         
-
         if (address(this).balance < payout) {
             revert InsufficientContractBalance();
         }
         
-        // Transfer payout
         payable(msg.sender).transfer(payout);
         
         emit WinningsClaimed(msg.sender, payout);
     }
     
-    // Getter Functions for Frontend
+    // Oracle-specific getter functions
+    function getCurrentPrice() external view returns (int256 price, uint256 updatedAt) {
+        (, int256 currentPrice,, uint256 timestamp,) = priceFeed.latestRoundData();
+        return (currentPrice, timestamp);
+    }
+    
+    function getMarketDetails() external view returns (
+        string memory symbol,
+        uint256 target,
+        uint256 resolutionTimestamp,
+        bool canResolve
+    ) {
+        return (
+            priceSymbol,
+            targetPrice,
+            resolutionTime,
+            block.timestamp >= resolutionTime
+        );
+    }
+    
+    // Standard getter functions
     function getCurrentPrices() external pure returns (uint256 yesPrice, uint256 noPrice) {
-        // Fixed pricing: both YES and NO cost the same
         return (SHARE_PRICE, SHARE_PRICE);
     }
     
@@ -246,7 +308,6 @@ contract PredictionMarket {
         yesPosition = userYesShares[user];
         noPosition = userNoShares[user];
         
-        // Calculate potential payout if market resolves in user's favor
         if (currentStatus == Status.RESOLVED) {
             if (outcome && yesPosition > 0) {
                 potentialPayout = yesPosition * 1 ether;
@@ -254,7 +315,6 @@ contract PredictionMarket {
                 potentialPayout = noPosition * 1 ether;
             }
         } else {
-            // Market not resolved yet, show potential max payout
             uint256 maxShares = yesPosition > noPosition ? yesPosition : noPosition;
             potentialPayout = maxShares * 1 ether;
         }
@@ -272,4 +332,3 @@ contract PredictionMarket {
         return address(this).balance;
     }
 }
-
