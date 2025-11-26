@@ -10,6 +10,8 @@ error MarketNotPaused();
 error MarketNotResolved();
 error NoWinningShares();
 error InsufficientContractBalance();
+error MarketHasEnded();
+error OnlyCreatorsCanPerformThisAction();
 
 
 contract PredictionMarket {
@@ -18,7 +20,8 @@ contract PredictionMarket {
         ACTIVE,
         PAUSED,
         RESOLVED
-    }
+    } // 
+
 
     // Individual variables - this contract IS a market
     uint256 public marketId;
@@ -39,14 +42,17 @@ contract PredictionMarket {
     uint256 public createdAt;
     uint256 public endTime;
 
-    // Trading constants
-    uint256 public constant SHARE_PRICE = 0.01 ether; // Fixed price: 0.01 ETH per share
+    
+    uint256 public constant SHARE_PRICE = 0.01 ether; // Fixed price: 0.01 ETH per share for now (Test)
+
     
     // User position tracking
     mapping(address => uint256) public userYesShares;
     mapping(address => uint256) public userNoShares;
     mapping(address => bool) public hasPosition; // check users who are trading in the market
-    address[] public traders; 
+
+    
+    address[] public traders; //store traders in a data storage array
     
     // Events
     event SharesPurchased(address indexed buyer, bool isYes, uint256 amount, uint256 cost);
@@ -57,9 +63,12 @@ contract PredictionMarket {
         marketId = _id;
         question = _question;
         imageUrl = _imageUrl;
-        creator = _creator;
+        // creator = _creator;
+        creator = msg.sender;
         factory = msg.sender; 
         currentStatus = Status.ACTIVE;
+
+        //timimg shares values
         createdAt = block.timestamp;
         endTime = block.timestamp + 30 days; 
 
@@ -71,15 +80,24 @@ contract PredictionMarket {
 
     // Modifiers
     modifier onlyActive() {
-        require(currentStatus == Status.ACTIVE, "Market not active");
-        require(block.timestamp < endTime, "Market has ended");
+        if (currentStatus != Status.ACTIVE) {
+            revert MarketNotActive();
+        }
+
+        if (block.timestamp >= endTime) {
+            revert MarketHasEnded();
+        }
         _;
     }
     
     modifier onlyAdmin() {
-        require(msg.sender == creator, "Only creator can perform this action");
+        if (msg.sender != creator) {
+            revert OnlyCreatorsCanPerformThisAction();
+        }
+        // require(msg.sender == creator, "Only creator can perform this action");
         _;
     }
+    
 
     // Trading Functions
     function buyYesShares(uint256 amount) external payable onlyActive {
@@ -272,4 +290,6 @@ contract PredictionMarket {
         return address(this).balance;
     }
 }
+
+
 

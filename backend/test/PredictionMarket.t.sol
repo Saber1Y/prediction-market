@@ -25,6 +25,8 @@ contract PredictionMarketTest is Test {
         // Give users some ETH for testing
         vm.deal(user1, 10 ether);
         vm.deal(user2, 10 ether);
+
+        console.log(user1.balance);
     }
     
     function testMarketInitialization() public {
