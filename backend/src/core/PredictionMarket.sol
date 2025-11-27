@@ -63,8 +63,8 @@ contract PredictionMarket {
         marketId = _id;
         question = _question;
         imageUrl = _imageUrl;
-        // creator = _creator;
-        creator = msg.sender;
+        creator = _creator;
+        // creator = msg.sender;
         factory = msg.sender; 
         currentStatus = Status.ACTIVE;
 
