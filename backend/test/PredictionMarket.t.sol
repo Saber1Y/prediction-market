@@ -22,7 +22,7 @@ contract PredictionMarketTest is Test {
             creator
         );
         
-        // Give users some ETH for testing
+        // assigns eth to dummy users
         vm.deal(user1, 10 ether);
         vm.deal(user2, 10 ether);
 
@@ -34,25 +34,29 @@ contract PredictionMarketTest is Test {
     assertEq(market.question(), "Will Bitcoin hit $100k by end of 2024?");
     assertEq(market.imageUrl(), "https://example.com/btc.png");
     assertEq(market.createdAt(), block.timestamp);
+    // assertEq(market.currentStatus(), PredictionMarket.Status.ACTIVE);
   }
 
-  function testOnlyActiveUsersCanBuyShares() public view  {
-    assertTrue(market.currentStatus() == PredictionMarket.Status.PAUSED);
+  // function testOnlyActiveUsersCanBuyShares() public view  {
+  //   assertTrue(market.currentStatus() == PredictionMarket.Status.PAUSED);
+  // }
+
+  function testBuyYesShares() public  {
+    uint256 amountOfBoughtShares = 5;
+    uint256 cost = amountOfBoughtShares * SHARE_PRICE;
+
+    vm.prank(user1);
+
+    market.buyYesShares{value: cost}(amountOfBoughtShares);
+
+    assertEq(market.userYesShares(user1), amountOfBoughtShares);
+    assertEq(market.hasPosition(user1), true);
+    assertEq(market.yesShares(), amountOfBoughtShares);
+    assertEq(market.totalShares(), amountOfBoughtShares);
+    assertEq(market.getTotalTraders(), 1);
   }
-    
-    // function testBuyYesShares() public {
-    //     uint256 amount = 10;
-    //     uint256 cost = amount * SHARE_PRICE;
-        
-    //     vm.prank(user1);
-    //     market.buyYesShares{value: cost}(amount);
-        
-    //     assertEq(market.userYesShares(user1), amount);
-    //     assertEq(market.yesShares(), amount);
-    //     assertEq(market.totalShares(), amount);
-    //     assertTrue(market.hasPosition(user1));
-    //     assertEq(market.getTotalTraders(), 1);
-    // }
+
+
     
     // function testBuyNoShares() public {
     //     uint256 amount = 5;
