@@ -56,6 +56,21 @@ contract PredictionMarketTest is Test {
     assertEq(market.getTotalTraders(), 1);
   }
 
+  function testBuyNoShares() public  {
+    uint256 amountOfBoughtShares = 5;
+    uint256 cost = amountOfBoughtShares * SHARE_PRICE;
+
+    vm.prank(user1);
+
+    market.buyNoShares{value: cost}(amountOfBoughtShares);
+
+    assertEq(market.userNoShares(user1), amountOfBoughtShares);
+    assertEq(market.hasPosition(user1), true);
+    assertEq(market.noShares(), amountOfBoughtShares);
+    assertEq(market.totalShares(), amountOfBoughtShares);
+    assertEq(market.getTotalTraders(), 1);
+  }
+
 
     
     // function testBuyNoShares() public {
