@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import "forge-std/Test.sol";
-import "../src/core/PredictionMarket.sol";
+import {Test} from "forge-std/Test.sol";
+import {PredictionMarket} from "../src/core/PredictionMarket.sol";
+
+import {
+    AmountMustBeGreaterThan0,
+    IncorrectPaymentAmount
+} from "../src/core/PredictionMarket.sol";
 
 contract PredictionMarketTest is Test {
     PredictionMarket public market;
@@ -26,7 +31,7 @@ contract PredictionMarketTest is Test {
         vm.deal(user1, 10 ether);
         vm.deal(user2, 10 ether);
 
-        console.log(user1.balance);
+        // console.log(user1.balance);
     }
     
   function testMarketInitialization() public view {
