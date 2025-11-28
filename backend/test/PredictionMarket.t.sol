@@ -72,7 +72,6 @@ contract PredictionMarketTest is Test {
   }
 
 function testMarketCanBePaused() public {
-    
     assertTrue(market.currentStatus() == PredictionMarket.Status.ACTIVE);
     
     vm.prank(creator);
@@ -80,6 +79,21 @@ function testMarketCanBePaused() public {
     
 
     assertTrue(market.currentStatus() == PredictionMarket.Status.PAUSED);
+}
+
+
+function testMarketCanBeResumed() public {
+    assertTrue(market.currentStatus() == PredictionMarket.Status.ACTIVE);
+    
+
+    vm.prank(creator);
+    market.pauseMarket();
+    assertTrue(market.currentStatus() == PredictionMarket.Status.PAUSED);
+    
+  
+    vm.prank(creator);
+    market.resumeMarket();
+    assertTrue(market.currentStatus() == PredictionMarket.Status.ACTIVE);
 }
 
 
