@@ -71,8 +71,18 @@ contract PredictionMarketTest is Test {
     assertEq(market.getTotalTraders(), 1);
   }
 
-
+function testMarketCanBePaused() public {
     
+    assertTrue(market.currentStatus() == PredictionMarket.Status.ACTIVE);
+    
+    vm.prank(creator);
+    market.pauseMarket();
+    
+
+    assertTrue(market.currentStatus() == PredictionMarket.Status.PAUSED);
+}
+
+
     // function testBuyNoShares() public {
     //     uint256 amount = 5;
     //     uint256 cost = amount * SHARE_PRICE;
