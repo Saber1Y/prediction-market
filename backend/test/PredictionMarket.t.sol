@@ -96,26 +96,14 @@ function testMarketCanBeResumed() public {
     assertTrue(market.currentStatus() == PredictionMarket.Status.ACTIVE);
 }
 
+function testPaymentWithZeroAmount() public {
+    vm.prank(user1);
+    vm.expectRevert(AmountMustBeGreaterThan0.selector);
+    market.buyYesShares{value: 0 ether}(0);
+}
 
-    // function testBuyNoShares() public {
-    //     uint256 amount = 5;
-    //     uint256 cost = amount * SHARE_PRICE;
-        
-    //     vm.prank(user2);
-    //     market.buyNoShares{value: cost}(amount);
-        
-    //     assertEq(market.userNoShares(user2), amount);
-    //     assertEq(market.noShares(), amount);
-    //     assertEq(market.totalShares(), amount);
-    //     assertTrue(market.hasPosition(user2));
-    // }
-    
-    // function testCannotBuyZeroShares() public {
-    //     vm.prank(user1);
-    //     vm.expectRevert(AmountMustBeGreaterThan0.selector);
-    //     market.buyYesShares{value: 0}(0);
-    // }
-    
+
+   
     // function testCannotBuyWithIncorrectPayment() public {
     //     vm.prank(user1);
     //     vm.expectRevert(IncorrectPaymentAmount.selector);
