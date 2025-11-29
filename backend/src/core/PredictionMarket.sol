@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 error AmountMustBeGreaterThan0();
 error IncorrectPaymentAmount();
@@ -12,7 +13,8 @@ error NoWinningShares();
 error InsufficientContractBalance();
 error MarketHasEnded();
 error OnlyCreatorsCanPerformThisAction();
-
+error TooEarlyTooResolve();
+error PriceIsLessThanZero();
 
 contract PredictionMarket {
     
@@ -45,6 +47,11 @@ contract PredictionMarket {
     
     uint256 public constant SHARE_PRICE = 0.01 ether; // Fixed price: 0.01 ETH per share for now (Test)
 
+    AggregatorV3Interface internal priceFeed;
+    uint256 public targetPrice;
+    uint256 public resolutionTime;
+    strig public priceSymbol;
+
     
     // User position tracking
     mapping(address => uint256) public userYesShares;
@@ -59,7 +66,7 @@ contract PredictionMarket {
     event MarketResolved(uint256 indexed marketId, bool outcome);
     event WinningsClaimed(address indexed winner, uint256 amount);
 
-    constructor(uint256 _id, string memory _question, string memory _imageUrl, address _creator) {
+    constructor(uint256 _id, string memory _question, string memory _imageUrl, address _creator, address _priceFeed, uint256 _targetPrice, uint256 _resolutionTime) {
         marketId = _id;
         question = _question;
         imageUrl = _imageUrl;
@@ -76,6 +83,11 @@ contract PredictionMarket {
         totalShares = 0;
         yesShares = 0;
         noShares = 0;
+
+        priceFeed = AggregatorV3Interface(_priceFeed);
+        targetPrice = _targetPrice;
+        resolutionTime = _resolutionTime;
+        priceSymbol = "ETH/USD"
     }
 
     // Modifiers
@@ -158,7 +170,16 @@ contract PredictionMarket {
 
     
     // Market Management Functions
-    function resolveMarket(bool _outcome) external onlyAdmin {
+    function AutoResolveMarket(bool _outcome) external onlyAdmin {
+            (, int256 price,, uint256 updatedAt,) = priceFeed.latestRoundData();
+
+            if (price < 0) {
+                revert PriceIsLessThanZero();
+            }
+
+        if (block.timeStamp <= resolutionTime) {
+            revert TooEarlyTooResolve();
+        }
 
         if (currentStatus == Status.RESOLVED) {
             revert MarketAlreadyResolved();
@@ -168,10 +189,13 @@ contract PredictionMarket {
             revert MarketHasNotEndedYet();
         }
 
-        // require(block.timestamp >= endTime, "Market hasn't ended yet");
         
-        outcome = _outcome;
-        currentStatus = Status.RESOLVED;
+        bool outcome = price >= int256(targetPrice);
+    
+    // Resolve the market
+    currentStatus = Status.RESOLVED;
+    resolved = true;
+    this.outcome = outcome;
         
         emit MarketResolved(marketId, _outcome);
     }
@@ -228,11 +252,10 @@ contract PredictionMarket {
         emit WinningsClaimed(msg.sender, payout);
     }
     
-    // Getter Functions for Frontend
-    function getCurrentPrices() external pure returns (uint256 yesPrice, uint256 noPrice) {
-        // Fixed pricing: both YES and NO cost the same
-        return (SHARE_PRICE, SHARE_PRICE);
-    }
+   function getCurrentPrice() public view returns (int256 price, uint256 updatedAt) {
+    (, int256 _price,, uint256 _updatedAt,) = priceFeed.latestRoundData();
+    return (_price, _updatedAt);
+}
     
     function getMarketInfo() external view returns (
         uint256 id,
