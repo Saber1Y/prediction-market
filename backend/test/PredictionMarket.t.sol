@@ -25,7 +25,10 @@ contract PredictionMarketTest is Test {
             1, 
             "Will Bitcoin hit $100k by end of 2024?", 
             "https://example.com/btc.png",
-            creator
+            creator,
+            0x694AA1769357215DE4FAC081bf1f309aDC325306,
+            100,
+            2029
         );
         
         // assigns eth to dummy users

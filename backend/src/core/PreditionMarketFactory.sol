@@ -12,12 +12,18 @@ contract PredictionMarketFactory {
     
     event MarketCreated(uint256 indexed marketId, address indexed marketAddress);
 
-    function createMarket(string memory question, string memory imageUrl) external {
+    function createMarket(string memory question, string memory imageUrl, uint256 resolutionTime, uint256 targetPrice) external {
+        
+        address sepoliaEthUsd = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
+
         PredictionMarket newMarket = new PredictionMarket(
             marketCount,
             question, 
             imageUrl,
-            msg.sender
+            msg.sender,
+            sepoliaEthUsd,
+            targetPrice,
+            resolutionTime
         );
         
         markets.push(address(newMarket));

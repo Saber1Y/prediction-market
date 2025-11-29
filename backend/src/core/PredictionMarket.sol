@@ -50,7 +50,7 @@ contract PredictionMarket {
     AggregatorV3Interface internal priceFeed;
     uint256 public targetPrice;
     uint256 public resolutionTime;
-    strig public priceSymbol;
+    string public priceSymbol;
 
     
     // User position tracking
@@ -87,7 +87,7 @@ contract PredictionMarket {
         priceFeed = AggregatorV3Interface(_priceFeed);
         targetPrice = _targetPrice;
         resolutionTime = _resolutionTime;
-        priceSymbol = "ETH/USD"
+        priceSymbol = "ETH/USD";
     }
 
     // Modifiers
@@ -170,34 +170,35 @@ contract PredictionMarket {
 
     
     // Market Management Functions
-    function AutoResolveMarket(bool _outcome) external onlyAdmin {
+    function autoResolveMarket() external onlyAdmin {
             (, int256 price,, uint256 updatedAt,) = priceFeed.latestRoundData();
 
             if (price < 0) {
                 revert PriceIsLessThanZero();
             }
 
-        if (block.timeStamp <= resolutionTime) {
-            revert TooEarlyTooResolve();
-        }
+        // if (block.timeStamp <= resolutionTime) {
+        //     revert TooEarlyTooResolve();
+        // }
 
         if (currentStatus == Status.RESOLVED) {
             revert MarketAlreadyResolved();
         }
 
-        if (block.timestamp < endTime) {
+        if (block.timestamp < resolutionTime) {
             revert MarketHasNotEndedYet();
         }
 
         
-        bool outcome = price >= int256(targetPrice);
+        bool marketOutcome = price >= int256(targetPrice);
+        bool updatedPrice = updatedAt >= resolutionTime;
     
     // Resolve the market
     currentStatus = Status.RESOLVED;
-    resolved = true;
-    this.outcome = outcome;
+    outcome = marketOutcome;
+    // resolutionTime = true;
         
-        emit MarketResolved(marketId, _outcome);
+        emit MarketResolved(marketId, marketOutcome);
     }
     
     function pauseMarket() external onlyAdmin {
