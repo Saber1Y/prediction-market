@@ -314,6 +314,3 @@ contract PredictionMarket {
         return address(this).balance;
     }
 }
-
-
-
